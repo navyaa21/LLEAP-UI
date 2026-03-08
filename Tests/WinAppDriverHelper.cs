@@ -179,6 +179,30 @@ namespace LLEAP.Tests.Helpers
             return newDriver;
         }
 
+        public static void CaptureScreenshot(WindowsDriver<WindowsElement> driver, string testName)
+        {
+            try
+            {
+                if (driver == null)
+                    return;
+
+                var screenshotsDir = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Screenshots");
+                System.IO.Directory.CreateDirectory(screenshotsDir);
+
+                var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                var fileName = $"{testName}_{timestamp}.png";
+                var filePath = System.IO.Path.Combine(screenshotsDir, fileName);
+
+                var screenshot = ((ITakesScreenshot)driver).GetScreenshot();
+                screenshot.SaveAsFile(filePath);
+
+                Console.WriteLine($"[SCREENSHOT] Saved: {filePath}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[SCREENSHOT ERROR] {ex.Message}");
+            }
+        }
         public static void DumpUIElements(WindowsDriver<WindowsElement> driver)
         {
             var elements = driver.FindElements(By.XPath("//*"));

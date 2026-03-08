@@ -1,583 +1,375 @@
 
-# LLEAP Automation Framework
 
-This project is a Windows desktop UI automation framework built with:
+# LLEAP UI Automation Framework
 
-- **C#**
-- **.NET 6**
-- **NUnit**
-- **WinAppDriver**
-- **Appium Windows Driver**
+Windows UI Automation framework for **Laerdal LLEAP applications** using:
 
-It automates Laerdal desktop applications such as:
+* **WinAppDriver**
+* **Appium .NET client**
+* **Selenium**
+* **NUnit**
+* **.NET 6**
 
-- **Instructor Application**
-- **Laerdal Simulation Home**
+This framework automates desktop workflows such as:
 
-The framework is designed so test cases stay simple, while reusable Windows automation logic is kept in helper files.
-
----
-
-# Project Goal
-
-The goal of this framework is to automate common end-to-end workflows in Laerdal applications, such as:
-
-- launching applications
-- clicking buttons and menus
-- handling popup windows
-- switching between desktop windows
-- interacting with controls like combo boxes, buttons, tabs, panes, and sliders
-- validating that important workflows complete successfully
+* Launching Instructor Application
+* Starting simulation sessions
+* Modifying patient parameters
+* Collecting logs from Laerdal Simulation Home
 
 ---
 
-# Project Structure
+# Framework Architecture
 
-```text
-LLEAP-AUTOMATION
+```
+LLEAP-Automation
+│
+├── Framework
+│   ├── Core
+│   │   ├── BaseTest.cs
+│   │   └── DriverFactory.cs
+│   │
+│   └── Utilities
+│       └── ConfigManager.cs
 │
 ├── Tests
 │   ├── Test1_LicenseFreeSession.cs
-│   ├── Test2_CollectLogs.cs
-│   ├── WinAppDriverHelper.cs
-│   └── TestData
+│   ├── Test2_CollectClientLogs.cs
+│   └── WinAppDriverHelper.cs
 │
-├── Framework
-├── bin
-├── obj
+├── RunTests.ps1
 ├── appsettings.json
 ├── LLEAP.csproj
-├── LLEAP-Automation.sln
-├── RunTest.ps1
-├── RunTests.ps1
-├── QuickTest.ps1
 └── README.md
-````
-
----
-
-# Main Files Explained
-
-## `Test1_LicenseFreeSession.cs`
-
-This test automates a full license-free session flow in the Instructor Application.
-
-Example actions:
-
-* click **Add license later**
-* select simulator
-* select manual mode
-* switch to popup windows
-* start session
-* set eyes to closed
-* set compliance
-* set heart rate
-* play voice
-* close application
-
-## `Test2_CollectLogs.cs`
-
-This test automates log collection in Laerdal Simulation Home.
-
-Example actions:
-
-* start the app
-* right-click the **Help** tile
-* select **Collect client log files**
-* handle UAC if needed
-* optionally close the log collection process due to long runtime
-
-## `WinAppDriverHelper.cs`
-
-This file contains reusable helper methods used by all tests.
-
-Examples:
-
-* start WinAppDriver
-* kill old app processes
-* launch application
-* switch between Windows popup windows
-* clean up drivers
-
-This is the core utility file of the framework.
-
----
-
-# How the Framework Works
-
-## 1. Setup
-
-Each test starts by:
-
-* making sure **WinAppDriver** is running
-* killing old instances of the application
-* launching the target application
-* creating the main Windows driver session
-
-## 2. Test Steps
-
-The test then performs actions using:
-
-* `FindElement`
-* `WebDriverWait`
-* `Actions`
-* helper methods like `SwitchToWindow(...)`
-
-## 3. Cleanup
-
-At the end, the framework:
-
-* closes all driver sessions
-* kills leftover processes
-
-This helps keep test runs clean and prevents old windows from interfering with future runs.
+```
 
 ---
 
 # Technologies Used
 
-## NUnit
-
-Used as the test framework.
-
-Important attributes:
-
-* `[TestFixture]` → marks a class as a test class
-* `[SetUp]` → runs before each test
-* `[Test]` → marks a test method
-* `[TearDown]` → runs after each test
-
-## WinAppDriver
-
-Used to automate Windows desktop applications.
-
-It works similarly to Selenium, but for Windows UI.
-
-## Appium Windows Driver
-
-Used to create driver sessions for Windows applications and windows.
+| Tool             | Purpose                      |
+| ---------------- | ---------------------------- |
+| WinAppDriver     | Windows UI automation server |
+| Appium.WebDriver | Client library               |
+| Selenium         | UI interaction               |
+| NUnit            | Test framework               |
+| .NET 6           | Runtime                      |
+| PowerShell       | Test runner script           |
+| GitHub Actions   | CI/CD                        |
 
 ---
 
 # Prerequisites
 
-Before running this framework, install the following:
+Install the following before running tests.
 
-## 1. .NET 6 SDK
+### 1 Install .NET 6 SDK
 
-Install .NET 6 SDK.
+Download
+[https://dotnet.microsoft.com/download/dotnet/6.0](https://dotnet.microsoft.com/download/dotnet/6.0)
 
-## 2. WinAppDriver
-
-Install **Windows Application Driver**.
-
-Default path:
-
-```text
-C:\Program Files (x86)\Windows Application Driver\WinAppDriver.exe
-```
-
-## 3. Visual Studio Code or Visual Studio
-
-Recommended for editing and running tests.
-
-## 4. Required NuGet Packages
-
-Make sure the project includes packages like:
-
-* `NUnit`
-* `NUnit3TestAdapter`
-* `Microsoft.NET.Test.Sdk`
-* `Appium.WebDriver`
-* `Selenium.WebDriver`
-* `Selenium.Support`
-
----
-
-# How to Run the Tests
-
-## Run all tests
+Verify
 
 ```powershell
-dotnet test LLEAP.csproj --logger "console;verbosity=detailed"
-```
-
-## Run a single test by name
-
-```powershell
-dotnet test LLEAP.csproj --filter "FullyQualifiedName~Test1_LicenseFreeSession" --logger "console;verbosity=detailed"
-```
-
-or
-
-```powershell
-dotnet test LLEAP.csproj --filter "FullyQualifiedName~Test2_CollectClientLogs" --logger "console;verbosity=detailed"
-```
-
-## Run using PowerShell script
-
-If your scripts are already set up, you can also use:
-
-```powershell
-.\RunTest.ps1
-```
-
-or
-
-```powershell
-.\RunTests.ps1
+dotnet --version
 ```
 
 ---
 
-# Important Framework Concepts
+### 2 Install WinAppDriver
 
-## Driver
+Download
 
-A `WindowsDriver<WindowsElement>` represents a session connected to a Windows application or a specific window.
-
-Example:
-
-```csharp
-driver = WinAppDriverHelper.LaunchApplication(AppPath);
+```
+https://github.com/microsoft/WinAppDriver/releases
 ```
 
-## Wait
+Install to
 
-`WebDriverWait` waits until an element appears before interacting with it.
-
-Example:
-
-```csharp
-var button = wait.Until(d => d.FindElement(By.Name("Ok")));
-button.Click();
+```
+C:\Program Files (x86)\Windows Application Driver
 ```
 
-This is better than clicking immediately because desktop apps often need time to load.
+Verify
 
-## Actions
-
-`Actions` is used for advanced interactions like:
-
-* right click
-* drag and drop
-* keyboard shortcuts
-
-Example:
-
-```csharp
-actions.ContextClick(helpTile).Perform();
 ```
-
-## SwitchToWindow
-
-Some workflows open new popup windows.
-For that, the framework uses:
-
-```csharp
-WinAppDriverHelper.SwitchToWindow("Select theme", "InstructorApplication");
+WinAppDriver.exe
 ```
-
-This finds the window by name and attaches a new driver session to it.
 
 ---
 
-# Helper Methods
+### 3 Install Required Applications
 
-## `EnsureWinAppDriverRunning()`
+These applications must exist on the machine running automation.
 
-Checks whether WinAppDriver is running.
-If not, it starts it automatically.
+Instructor Application
 
-## `KillProcessesByName(processName)`
+```
+C:\Program Files (x86)\Laerdal Medical\Instructor Application\InstructorApplication\InstructorApplication.exe
+```
 
-Kills all running processes for the given app name.
+Laerdal Simulation Home
 
-Used to prevent old sessions from interfering with the next test.
-
-## `LaunchApplication(appPath)`
-
-Launches the target application and returns the main driver.
-
-## `SwitchToWindow(windowName, processName, timeoutSeconds)`
-
-Attaches to a popup or secondary window by title.
-
-## `CleanupDrivers(...)`
-
-Safely closes all open driver sessions.
+```
+C:\Program Files (x86)\Laerdal Medical\Laerdal Simulation Home\LaunchPortal.exe
+```
 
 ---
 
-# Writing a New Test Case
+### 4 Run PowerShell as Administrator
 
-To add a new test:
+WinAppDriver and UI automation require **administrator privileges**.
 
-## Step 1: Create a new file in `Tests`
+---
+
+# Configuration
+
+The framework uses **appsettings.json** to manage paths.
 
 Example:
 
-```text
-Tests\Test3_SomeFeature.cs
-```
-
-## Step 2: Create a test class
-
-```csharp
-[TestFixture]
-public class Test3_SomeFeature
+```json
 {
+  "Applications": {
+    "InstructorApp": "C:\\Program Files (x86)\\Laerdal Medical\\Instructor Application\\InstructorApplication\\InstructorApplication.exe",
+    "SimulationHome": "C:\\Program Files (x86)\\Laerdal Medical\\Laerdal Simulation Home\\LaunchPortal.exe"
+  },
+  "WinAppDriver": {
+    "Url": "http://127.0.0.1:4723"
+  }
 }
 ```
 
-## Step 3: Add Setup, Test, and TearDown
+Update paths if applications are installed elsewhere.
 
-```csharp
-[SetUp]
-public void Setup()
-{
-    // launch app
-}
+---
 
-[Test]
-public void RunTest3()
-{
-    // test steps
-}
+# Running Tests
 
-[TearDown]
-public void Teardown()
-{
-    // cleanup
-}
+Tests are executed using the **RunTests.ps1** script.
+
+---
+
+## Run Test 1
+
+License Free Session automation.
+
+```powershell
+.\RunTests.ps1 -Test1
 ```
 
-## Step 4: Reuse helper methods
+Test steps:
 
-Instead of duplicating launch and window-switch code, use:
+1 Launch Instructor Application
+2 Add license later
+3 Select local computer
+4 Start manual simulation
+5 Change eye state
+6 Adjust lung compliance
+7 Modify heart rate
+8 Play coughing sound
 
-```csharp
-WinAppDriverHelper.EnsureWinAppDriverRunning();
-WinAppDriverHelper.LaunchApplication(AppPath);
-WinAppDriverHelper.SwitchToWindow("Window Name", ProcessName);
+---
+
+## Run Test 2
+
+Collect client logs from Laerdal Simulation Home.
+
+```powershell
+.\RunTests.ps1 -Test2
+```
+
+Test steps:
+
+1 Launch Simulation Home
+2 Right click Help tile
+3 Select **Collect client log files**
+4 Handle UAC popup
+5 Verify log collection
+
+Note
+
+Log collection can take a **very long time**.
+The test intentionally closes the application early due to time constraints.
+
+---
+
+## Run All Tests
+
+```powershell
+.\RunTests.ps1 -All
 ```
 
 ---
 
-# Best Practices Used in This Framework
+# Running Tests Using dotnet
 
-## 1. Use explicit waits
+You can also run tests directly using the .NET CLI.
 
-Avoid clicking elements without waiting for them.
+Run specific test
 
-Good:
-
-```csharp
-wait.Until(d => d.FindElement(By.Name("OK"))).Click();
+```powershell
+dotnet test --filter Test1_LicenseFreeSession
 ```
 
-Bad:
+Run log collection test
 
-```csharp
-driver.FindElement(By.Name("OK")).Click();
+```powershell
+dotnet test --filter Test2_CollectClientLogs
 ```
 
-## 2. Keep reusable code in helpers
+Run all tests
 
-Window switching, app launch, and cleanup should stay in helper files.
-
-## 3. Keep test files readable
-
-A test file should show business steps clearly:
-
-```csharp
-Console.WriteLine("Step 1: Add license later");
-Console.WriteLine("Step 2: Select simulator");
-Console.WriteLine("Step 3: Start session");
-```
-
-## 4. Add logging
-
-Use `Console.WriteLine(...)` so beginners can follow the test flow.
-
-## 5. Always clean up
-
-Desktop apps can leave windows open if cleanup is skipped.
-
----
-
-# Common Problems and Fixes
-
-## Problem: Window not found
-
-Example:
-
-```text
-Window 'Select theme' not found.
-```
-
-### Fix:
-
-* increase timeout
-* confirm exact window title in Inspect
-* make sure the popup really appeared
-* verify process name
-
-## Problem: Element not found
-
-Example:
-
-```text
-An element could not be located on the page
-```
-
-### Fix:
-
-* use Inspect.exe to inspect the UI tree
-* verify `Name`, `AutomationId`, and control type
-* switch to the correct window first
-* use `WebDriverWait`
-
-## Problem: Test not discovered
-
-Example:
-
-```text
-No test matches the given testcase filter
-```
-
-### Fix:
-
-* make sure class has `[TestFixture]`
-* make sure method has `[Test]`
-* use the correct test filter name
-
-## Problem: UAC popup cannot be automated
-
-Windows UAC sometimes appears on the secure desktop, which normal automation tools cannot control.
-
-### Fix:
-
-* allow admin access manually in test environment
-* disable UAC in a safe test machine if allowed
-* handle it outside normal automation if necessary
-
----
-
-# How to Inspect Desktop Elements
-
-Use **Inspect.exe** from Windows SDK to inspect UI elements.
-
-Look for:
-
-* `Name`
-* `AutomationId`
-* `ControlType`
-* `BoundingRectangle`
-* `NativeWindowHandle`
-
-This information helps create the right locator.
-
-Example locators:
-
-```csharp
-By.Name("OK")
-MobileBy.AccessibilityId("EyesComboBox")
-By.XPath("//Window//Button[@Name='Start session']")
+```powershell
+dotnet test
 ```
 
 ---
 
-# Example Locator Types
+# Test Cleanup
 
-## By Name
+After execution, the script automatically cleans up processes.
 
-```csharp
-driver.FindElement(By.Name("OK"));
+Example PowerShell cleanup
+
+```powershell
+Stop-Process -Name dotnet -Force -ErrorAction SilentlyContinue
+Stop-Process -Name WinAppDriver -Force -ErrorAction SilentlyContinue
 ```
 
-## By Accessibility ID
-
-```csharp
-driver.FindElement(MobileBy.AccessibilityId("PlayButton"));
-```
-
-## By XPath
-
-```csharp
-driver.FindElement(By.XPath("//Window//Button[@Name='Start session']"));
-```
-
-Use `AccessibilityId` first when available, because it is usually more stable.
+This prevents leftover processes consuming memory.
 
 ---
 
-# Current Test Coverage
+# Continuous Integration
 
-## Test Case 1
+The framework supports **GitHub Actions**.
 
-**License-Free Session**
+Automation runs on a **self hosted Windows runner** because UI automation requires:
 
-* Launch Instructor Application
-* Add license later
-* Select simulator
-* Select manual mode
-* Configure session
-* Set vitals and sounds
-* Close application
+* Installed applications
+* Desktop session
+* WinAppDriver
+* Local UI interaction
 
-## Test Case 2
+---
 
-**Collect Client Logs**
+## CI Workflow Location
 
-* Launch Laerdal Simulation Home
-* Open Help tile menu
-* Trigger client log collection
-* Handle UAC if needed
-* Stop early if log collection is too long
+```
+.github/workflows/ui-automation.yml
+```
+
+---
+
+## Example Workflow
+
+```yaml
+name: LLEAP UI Automation
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-tests:
+    runs-on: [self-hosted, windows]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build
+
+      - name: Run Tests
+        run: powershell -ExecutionPolicy Bypass -File RunTests.ps1 -All
+```
+
+---
+
+# Best Practices
+
+### Always run tests
+
+* On a clean machine
+* With administrator privileges
+* With WinAppDriver running
+
+---
+
+### Avoid committing build artifacts
+
+Add to `.gitignore`
+
+```
+bin/
+obj/
+TestResults/
+.vs/
+```
+
+---
+
+# Troubleshooting
+
+## WinAppDriver not starting
+
+Run manually
+
+```
+WinAppDriver.exe
+```
+
+---
+
+## Element not found
+
+Use **Inspect.exe** from Windows SDK to locate UI elements.
+
+---
+
+## UAC blocking automation
+
+Run PowerShell as **Administrator**.
+
+---
+
+## Tests fail due to timing
+
+Increase waits in code or use:
+
+```
+WebDriverWait
+```
+
+instead of `Thread.Sleep`.
 
 ---
 
 # Future Improvements
 
-Possible improvements for this framework:
+Possible enhancements:
 
-* Page Object Model structure
-* better logging to file
-* screenshots on failure
-* test result reports
-* reusable control helper methods
-* configuration-driven app paths
-* CI/CD execution support
-
----
-
-# Beginner Tips
-
-If you are new to this framework:
-
-1. Start by reading `WinAppDriverHelper.cs`
-2. Run one existing test first
-3. Use Inspect.exe to understand UI elements
-4. Add one step at a time
-5. Print logs often with `Console.WriteLine`
+* Page Object Model
+* Screenshot capture on failure
+* Reporting integration
+* Retry logic for unstable UI steps
+* Parallel test execution
+* Docker based Windows runner
 
 ---
 
-# Summary
+# Author
 
-This framework is a reusable Windows desktop automation project for Laerdal applications.
+Navya
 
-It helps automate:
-
-* application launch
-* popup handling
-* control interaction
-* cleanup
-
-The design goal is simple:
-
-* keep test cases readable
-* keep technical logic reusable
-* make it easy for beginners to extend
+GitHub
+[https://github.com/navyaa21/LLEAP-UI](https://github.com/navyaa21/LLEAP-UI)
 

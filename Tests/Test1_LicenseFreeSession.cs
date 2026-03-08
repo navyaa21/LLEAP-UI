@@ -208,6 +208,19 @@ namespace LLEAP.Tests
         [TearDown]
         public void Teardown()
         {
+            try
+            {
+                var status = TestContext.CurrentContext.Result.Outcome.Status;
+
+                if (status == NUnit.Framework.Interfaces.TestStatus.Failed)
+                {
+                    WinAppDriverHelper.CaptureScreenshot(driver, TestContext.CurrentContext.Test.Name);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[TEARDOWN ERROR] {ex.Message}");
+            }
             WinAppDriverHelper.CleanupDrivers(patientDriver, pauseDriver, themeDriver, driver);
             WinAppDriverHelper.KillProcessesByName(InstructorProcessName);
         }

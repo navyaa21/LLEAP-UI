@@ -36,10 +36,10 @@ namespace LLEAP.Tests
             Thread.Sleep(2000);
 
             driver = WinAppDriverHelper.LaunchApplication(AppPath);
-            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(20);
+            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
 
             actions = new Actions(driver);
-            wait = new WebDriverWait(driver, TimeSpan.FromSeconds(60));
+            wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
 
             Console.WriteLine($"{DateTime.Now:HH:mm:ss} [SUCCESS] Setup complete");
         }
@@ -143,6 +143,20 @@ namespace LLEAP.Tests
         [TearDown]
         public void Teardown()
         {
+            try
+            {
+                var status = TestContext.CurrentContext.Result.Outcome.Status;
+
+                if (status == NUnit.Framework.Interfaces.TestStatus.Failed)
+                {
+                    WinAppDriverHelper.CaptureScreenshot(driver, TestContext.CurrentContext.Test.Name);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[TEARDOWN ERROR] {ex.Message}");
+            }
+
             WinAppDriverHelper.CleanupDrivers(uacDriver, driver);
             WinAppDriverHelper.KillProcessesByName(ProcessName);
         }
