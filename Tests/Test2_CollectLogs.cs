@@ -4,7 +4,7 @@ using OpenQA.Selenium.Interactions;
 using LLEAP.Core;
 using LLEAP.Helpers;
 using System.Threading;
-
+//C:\Program Files (x86)\Laerdal Medical\Laerdal Simulation Home\LaunchPortal.exe
 namespace LLEAP.Tests
 {
     [TestFixture]
