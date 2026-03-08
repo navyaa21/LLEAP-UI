@@ -139,54 +139,59 @@ namespace LLEAP.Tests
 
             Console.WriteLine("Step 11: Set HR to 100");
 
-try
-{
-  Console.WriteLine("Trying to find PMControl...");
-var hrPane = patientDriver.FindElement(
-    By.XPath("(//Tab)[last()-3]//Pane[@Name='dialogue']//Pane[@Name='c'][2]")
-);
+            try
+            {
+                Console.WriteLine("Step 11: Click HR pane by coordinates");
 
-Thread.Sleep(1000);
+                int clickX = 1560;
+                int clickY = 159;
+
+                new Actions(patientDriver)
+                    .MoveByOffset(clickX, clickY)
+                    .Click()
+                    .Perform();
+
+                Thread.Sleep(1000);
 
 
 
-    Console.WriteLine("Switching to Set Heart Rate dialog...");
-    var hrDialog = WinAppDriverHelper.SwitchToWindow("Set Heart Rate", InstructorProcessName);
-    var hrDialogWait = new WebDriverWait(hrDialog, TimeSpan.FromSeconds(20));
+                Console.WriteLine("Switching to Set Heart Rate dialog...");
+                var hrDialog = WinAppDriverHelper.SwitchToWindow("Set Heart Rate", InstructorProcessName);
+                var hrDialogWait = new WebDriverWait(hrDialog, TimeSpan.FromSeconds(20));
 
-    Console.WriteLine("Finding Edit boxes...");
-    var editBoxes = hrDialogWait.Until(d => d.FindElements(By.ClassName("Edit")));
-    Console.WriteLine($"Found {editBoxes.Count} Edit box(es)");
+                Console.WriteLine("Finding Edit boxes...");
+                var editBoxes = hrDialogWait.Until(d => d.FindElements(By.ClassName("Edit")));
+                Console.WriteLine($"Found {editBoxes.Count} Edit box(es)");
 
-    if (editBoxes.Count < 2)
-    {
-        throw new Exception("Expected at least 2 Edit controls in Set Heart Rate dialog.");
-    }
+                if (editBoxes.Count < 2)
+                {
+                    throw new Exception("Expected at least 2 Edit controls in Set Heart Rate dialog.");
+                }
 
-    var newValueBox = editBoxes[1];
+                var newValueBox = editBoxes[1];
 
-    Console.WriteLine("Entering new HR value 100...");
-    newValueBox.Click();
-    newValueBox.SendKeys(Keys.Control + "a");
-    newValueBox.SendKeys(Keys.Delete);
-    newValueBox.SendKeys("100");
+                Console.WriteLine("Entering new HR value 100...");
+                newValueBox.Click();
+                newValueBox.SendKeys(Keys.Control + "a");
+                newValueBox.SendKeys(Keys.Delete);
+                newValueBox.SendKeys("100");
 
-    Console.WriteLine("Clicking OK...");
-    hrDialogWait.Until(d => d.FindElement(By.Name("OK"))).Click();
+                Console.WriteLine("Clicking OK...");
+                hrDialogWait.Until(d => d.FindElement(By.Name("OK"))).Click();
 
-    Thread.Sleep(1000);
+                Thread.Sleep(1000);
 
-    Console.WriteLine("Switching back to Healthy patient window...");
-    patientDriver = WinAppDriverHelper.SwitchToWindow("Healthy patient", InstructorProcessName);
-    patientWait = new WebDriverWait(patientDriver, TimeSpan.FromSeconds(30));
+                Console.WriteLine("Switching back to Healthy patient window...");
+                patientDriver = WinAppDriverHelper.SwitchToWindow("Healthy patient", InstructorProcessName);
+                patientWait = new WebDriverWait(patientDriver, TimeSpan.FromSeconds(30));
 
-    Console.WriteLine("HR step completed successfully.");
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"[ERROR] Step 11 failed: {ex}");
-    throw;
-}
+                Console.WriteLine("HR step completed successfully.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Step 11 failed: {ex}");
+                throw;
+            }
 
 
 
