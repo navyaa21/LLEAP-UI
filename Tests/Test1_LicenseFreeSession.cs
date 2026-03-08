@@ -8,6 +8,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using LLEAP.Framework.Config;
 using LLEAP.Tests.Helpers;
 
 namespace LLEAP.Tests
@@ -25,8 +26,7 @@ namespace LLEAP.Tests
         private Process instructorProc;
 
         private const string InstructorProcessName = "InstructorApplication";
-        private const string AppPath =
-            @"C:\Program Files (x86)\Laerdal Medical\Instructor Application\InstructorApplication\InstructorApplication.exe";
+        private string AppPath => AppConfig.InstructorApp;
 
         [SetUp]
         public void Setup()
@@ -120,7 +120,6 @@ namespace LLEAP.Tests
             Thread.Sleep(1000);
 
             Console.WriteLine("Step 10: Set Lung compliance to 67%");
-
             var complianceSlider = patientWait.Until(d =>
                 d.FindElement(MobileBy.AccessibilityId("compliance")));
 
@@ -137,63 +136,53 @@ namespace LLEAP.Tests
                 .Release()
                 .Perform();
 
+            Thread.Sleep(1000);
+
             Console.WriteLine("Step 11: Set HR to 100");
 
             try
             {
-                Console.WriteLine("Step 11: Click HR pane by coordinates");
+                var tabs = patientDriver.FindElements(By.XPath("//Tab"));
+                var targetTab = tabs[tabs.Count - 4];
 
-                int clickX = 1560;
-                int clickY = 159;
+                var xceedNode = targetTab.FindElement(By.XPath("./*"));
+                var customNode = xceedNode.FindElement(By.XPath("./*"));
+                var firstPane = customNode.FindElement(By.XPath("./*"));
+                var secondPane = firstPane.FindElement(By.XPath("./*"));
+                var dialogue = secondPane.FindElement(By.XPath("./*[@Name='dialogue']"));
 
-                new Actions(patientDriver)
-                    .MoveByOffset(clickX, clickY)
-                    .Click()
-                    .Perform();
+                var cPanes = dialogue.FindElements(By.XPath("./*[@Name='c']"));
+                cPanes[1].Click();
 
                 Thread.Sleep(1000);
 
-
-
-                Console.WriteLine("Switching to Set Heart Rate dialog...");
                 var hrDialog = WinAppDriverHelper.SwitchToWindow("Set Heart Rate", InstructorProcessName);
                 var hrDialogWait = new WebDriverWait(hrDialog, TimeSpan.FromSeconds(20));
 
-                Console.WriteLine("Finding Edit boxes...");
                 var editBoxes = hrDialogWait.Until(d => d.FindElements(By.ClassName("Edit")));
-                Console.WriteLine($"Found {editBoxes.Count} Edit box(es)");
 
                 if (editBoxes.Count < 2)
-                {
                     throw new Exception("Expected at least 2 Edit controls in Set Heart Rate dialog.");
-                }
 
                 var newValueBox = editBoxes[1];
 
-                Console.WriteLine("Entering new HR value 100...");
                 newValueBox.Click();
                 newValueBox.SendKeys(Keys.Control + "a");
                 newValueBox.SendKeys(Keys.Delete);
                 newValueBox.SendKeys("100");
 
-                Console.WriteLine("Clicking OK...");
                 hrDialogWait.Until(d => d.FindElement(By.Name("OK"))).Click();
 
                 Thread.Sleep(1000);
 
-                Console.WriteLine("Switching back to Healthy patient window...");
                 patientDriver = WinAppDriverHelper.SwitchToWindow("Healthy patient", InstructorProcessName);
                 patientWait = new WebDriverWait(patientDriver, TimeSpan.FromSeconds(30));
-
-                Console.WriteLine("HR step completed successfully.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[ERROR] Step 11 failed: {ex}");
                 throw;
             }
-
-
 
             Console.WriteLine("Step 12: Play Coughing once");
 

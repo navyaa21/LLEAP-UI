@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
+using LLEAP.Framework.Config;
 
 namespace LLEAP.Tests.Helpers
 {
@@ -42,8 +43,12 @@ namespace LLEAP.Tests.Helpers
 
                 Thread.Sleep(1000);
 
-                string winAppDriverPath =
-                    @"C:\Program Files (x86)\Windows Application Driver\WinAppDriver.exe";
+                string winAppDriverPath = AppConfig.WinAppDriver;
+
+                if (!System.IO.File.Exists(winAppDriverPath))
+                {
+                    throw new Exception($"WinAppDriver not found at: {winAppDriverPath}");
+                }
 
                 Process.Start(winAppDriverPath);
 
@@ -108,36 +113,48 @@ namespace LLEAP.Tests.Helpers
                 rootOptions);
 
             string hwnd = null;
+            int expectedPid = Process.GetProcessesByName(processName).FirstOrDefault()?.Id ?? 0;
+
             var endTime = DateTime.Now.AddSeconds(timeoutSeconds);
 
             while (DateTime.Now < endTime)
             {
                 try
                 {
-                    int pid = Process.GetProcessesByName(processName).FirstOrDefault()?.Id ?? 0;
                     var windows = rootDriver.FindElements(By.XPath("//Window"));
 
                     foreach (var win in windows)
                     {
-                        var name = win.GetAttribute("Name")?.ToLower();
-                        var processIdText = win.GetAttribute("ProcessId");
-
-                        if (name != null &&
-                            name.Contains(windowName.ToLower()) &&
-                            processIdText == pid.ToString())
+                        try
                         {
-                            hwnd = int.Parse(win.GetAttribute("NativeWindowHandle")).ToString("x");
+                            var name = win.GetAttribute("Name");
+                            var pidText = win.GetAttribute("ProcessId");
+                            var nativeHandle = win.GetAttribute("NativeWindowHandle");
 
-                            Console.WriteLine(
-                                $"{DateTime.Now:HH:mm:ss} [SWITCH] Found window '{name}' HWND=0x{hwnd}");
-                            break;
+                            if (!string.IsNullOrWhiteSpace(name) &&
+                                name.IndexOf(windowName, StringComparison.OrdinalIgnoreCase) >= 0)
+                            {
+                                if (pidText == expectedPid.ToString())
+                                {
+                                    hwnd = int.Parse(nativeHandle).ToString("x");
+                                    Console.WriteLine($"{DateTime.Now:HH:mm:ss} [SWITCH] Matched by title + process. HWND=0x{hwnd}");
+                                    break;
+                                }
+
+                                if (hwnd == null)
+                                {
+                                    hwnd = int.Parse(nativeHandle).ToString("x");
+                                    Console.WriteLine($"{DateTime.Now:HH:mm:ss} [SWITCH] Matched by title only. HWND=0x{hwnd}");
+                                }
+                            }
+                        }
+                        catch
+                        {
                         }
                     }
 
                     if (hwnd != null)
-                    {
                         break;
-                    }
                 }
                 catch (Exception ex)
                 {
@@ -148,9 +165,7 @@ namespace LLEAP.Tests.Helpers
             }
 
             if (hwnd == null)
-            {
                 throw new Exception($"Window '{windowName}' not found.");
-            }
 
             var options = new AppiumOptions();
             options.AddAdditionalCapability("appTopLevelWindow", hwnd);

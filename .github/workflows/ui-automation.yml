@@ -1,0 +1,56 @@
+name: LLEAP UI Automation
+
+on:
+  workflow_dispatch:
+    inputs:
+      testSuite:
+        description: "Which test suite to run"
+        required: true
+        default: "test1"
+        type: choice
+        options:
+          - test1
+          - test2
+          - all
+
+  push:
+    branches:
+      - develop
+
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  build-and-test:
+    runs-on: [self-hosted, windows, x64]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 6 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Restore
+        run: dotnet restore LLEAP.csproj
+
+      - name: Build
+        run: dotnet build LLEAP.csproj --configuration Release --no-restore
+
+      - name: Run Test 1
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.testSuite == 'test1' }}
+        shell: powershell
+        run: powershell -ExecutionPolicy Bypass -File .\RunTests.ps1 -Test1
+
+      - name: Run Test 2
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.testSuite == 'test2' }}
+        shell: powershell
+        run: powershell -ExecutionPolicy Bypass -File .\RunTests.ps1 -Test2
+
+      - name: Run All Tests
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.testSuite == 'all' }}
+        shell: powershell
+        run: powershell -ExecutionPolicy Bypass -File .\RunTests.ps1 -All

@@ -156,3 +156,14 @@ if ($host.Name -like "*ISE*" -or $host.Name -like "*Console*") {
     Write-Host "`nPress any key to exit..." -ForegroundColor Gray
     $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 }
+
+Write-Host "`n🧹 Cleaning up automation processes..." -ForegroundColor Yellow
+
+# Kill leftover automation processes
+Get-Process dotnet -ErrorAction SilentlyContinue | Stop-Process -Force
+Get-Process vstest.console -ErrorAction SilentlyContinue | Stop-Process -Force
+Get-Process LLEAPLogView -ErrorAction SilentlyContinue | Stop-Process -Force
+Get-Process InstructorApplication -ErrorAction SilentlyContinue | Stop-Process -Force
+Get-Process LaunchPortal -ErrorAction SilentlyContinue | Stop-Process -Force
+
+Write-Host "✅ Cleanup complete!" -ForegroundColor Green
